@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 @sunk8ssmaki </title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#ffd1dc,#fff);
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+#fireworks{position:fixed;inset:0;z-index:0;pointer-events:none}
+#bgTexts{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bg-text{position:absolute;font-size:24px;font-weight:700;color:rgba(255,80,150,0.85);animation:floatUp linear forwards;white-space:nowrap}
+@keyframes floatUp{from{transform:translateY(120vh);opacity:0} 15%{opacity:1} to{transform:translateY(-30vh);opacity:0}}
+
+.container{
+  position:relative;
+  z-index:2;
+  width:90%;
+  max-width:850px;
+  background:rgba(255,255,255,0.93);
+  border-radius:32px;
+  padding:45px;
+  box-shadow:0 40px 80px rgba(255,105,180,.35);
+  text-align:center;
+}
+
+/* New text style */
+.container p{
+  font-family: "Brush Script MT", cursive;
+  font-size: 48px;
+  color: #ff2f92;
+}
+
+.heart{position:fixed;bottom:-20px;font-size:22px;color:rgba(255,105,180,.9);animation:heartUp 6s linear forwards;z-index:1}
+@keyframes heartUp{to{transform:translateY(-130vh);opacity:0}}
+
+/* Click-to-play overlay */
+#musicOverlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:10;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.4);}
+#musicOverlay button{padding:20px 40px;font-size:22px;border:none;border-radius:20px;background:#ff2f92;color:#fff;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- Click-to-play overlay -->
+<div id="musicOverlay">
+  <button id="playMusic">START IMNIDA</button>
+</div>
+
+<!-- YouTube iframe (updated) -->
+<iframe id="bgMusic" width="0" height="0"
+src="https://www.youtube.com/embed/4zhGE1GI3XA?si=fv3k47VjyP2CL1Rh&enablejsapi=1&loop=1&playlist=4zhGE1GI3XA"
+frameborder="0" allow="autoplay"></iframe>
+
+<canvas id="fireworks"></canvas>
+<div id="bgTexts"></div>
+
+<div class="container">
+  <p>i miss you so much, anica</p>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+/* ================= MUSIC ================= */
+let player;
+function onYouTubeIframeAPIReady(){ player = new YT.Player("bgMusic",{events:{}}) }
+document.getElementById("playMusic").addEventListener("click", ()=>{
+  if(player){ player.playVideo(); }
+  document.getElementById("musicOverlay").style.display="none";
+});
+
+/* ================= HEART FLOAT ANIMATION ================= */
+function hearts(){for(let i=0;i<18;i++){const h=document.createElement("div");h.className="heart";h.textContent="💗";h.style.left=Math.random()*100+"%";h.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(h);setTimeout(()=>h.remove(),6000)}}
+setInterval(hearts,2500);
+
+/* FLOATING TEXT */
+const words=["i miss you"];
+setInterval(()=>{const t=document.createElement("div");t.className="bg-text";t.textContent=words[Math.floor(Math.random()*words.length)];t.style.left=Math.random()*90+"%";t.style.animationDuration=12+Math.random()*10+"s";bgTexts.appendChild(t);setTimeout(()=>t.remove(),22000)},1200);
+
+/* ================= FIREWORKS CODE — UNTOUCHED ================= */
+const canvas=document.getElementById("fireworks");
+const ctx=canvas.getContext("2d");
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+resize(); addEventListener("resize",resize);
+
+let rockets=[], particles=[];
+const pinkColors=["#ff4f9a","#ff6fae","#ff85c0","#ffb3d1","#ff80aa","#ff9fcf"];
+const accentColors=["#fff9c4","#fffacd"];
+let flashAlpha=0;
+let fadeBlack=0;
+
+class FireParticle{constructor(x,y){this.x=x+(Math.random()-0.5)*6;this.y=y;this.vx=(Math.random()-0.5)*0.5;this.vy=-Math.random()*1;this.life=30+Math.random()*20;this.size=2+Math.random()*2;this.color=Math.random()<0.85?pinkColors[Math.floor(Math.random()*pinkColors.length)]:accentColors[Math.floor(Math.random()*accentColors.length)];} update(){this.x+=this.vx;this.y+=this.vy;this.life--;} draw(){ctx.fillStyle=this.color;ctx.globalAlpha=this.life/50;ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}}
+class Rocket{constructor(){this.x=Math.random()*canvas.width;this.y=canvas.height;this.vy=2+Math.random()*1.5;this.vx=(Math.random()-0.5)*1.5;this.targetY=Math.random()*canvas.height*0.35+80;this.exploded=false;this.sway=Math.random()*0.05+0.02;this.angle=Math.random()*Math.PI*2;} update(){this.x+=Math.sin(this.angle)*this.vx;this.angle+=this.sway;this.y-=this.vy;fadeBlack=0.08;for(let i=0;i<6;i++)particles.push(new Trail(this.x+(Math.random()-0.5)*6,this.y+15));for(let i=0;i<2;i++)particles.push(new FireParticle(this.x,this.y));if(this.y<=this.targetY&&!this.exploded){this.explode();this.exploded=true;}} draw(){ctx.fillStyle="#ff9f1c";ctx.fillRect(this.x,this.y,4,14);} explode(){flashAlpha=0.9;fadeBlack=0;const effectType=Math.floor(Math.random()*8);if(effectType===0){this.sparkBurst();}else if(effectType===1){this.starBurst();}else if(effectType===2){this.ring();}else if(effectType===3){this.heartShape();}else if(effectType===4){this.lineRays();}else if(effectType===5){this.spiral();}else if(effectType===6){this.combo();}else{this.cluster();}}}
+class Trail{constructor(x,y){this.x=x;this.y=y;this.life=35} update(){this.life--} draw(){ctx.fillStyle=`rgba(255,140,0,${this.life/35})`;ctx.fillRect(this.x,this.y,3,3)}}
+class Spark{constructor(x,y,color){const a=Math.random()*Math.PI*2;const s=Math.random()*10+2;this.x=x;this.y=y;this.vx=Math.cos(a)*s;this.vy=Math.sin(a)*s;this.life=120;this.color=color} update(){this.x+=this.vx;this.y+=this.vy;this.vy+=0.04;this.life--} draw(){ctx.fillStyle=this.color;ctx.fillRect(this.x,this.y,3,3)}}
+class LineRay{constructor(x,y,color){this.x=x;this.y=y;this.angle=Math.random()*Math.PI*2;this.maxLength=Math.random()*180+100;this.currentLength=0;this.speed=Math.random()*6+5;this.life=70;this.color=color} update(){this.currentLength+=this.speed;if(this.currentLength>this.maxLength)this.currentLength=this.maxLength;this.life--} draw(){ctx.save();ctx.globalAlpha=this.life/70;ctx.strokeStyle=this.color;ctx.lineWidth=3;ctx.shadowBlur=15;ctx.shadowColor=this.color;ctx.beginPath();ctx.moveTo(this.x,this.y);ctx.lineTo(this.x+Math.cos(this.angle)*this.currentLength,this.y+Math.sin(this.angle)*this.currentLength);ctx.stroke();ctx.restore()}}
+
+function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);
+if(fadeBlack>0){ctx.fillStyle=`rgba(0,0,0,${fadeBlack})`;ctx.fillRect(0,0,canvas.width,canvas.height);fadeBlack-=0.01;}
+rockets.forEach((r,i)=>{r.update();r.draw();if(r.exploded)rockets.splice(i,1)});
+particles.forEach((p,i)=>{p.update();p.draw();if(p.life<=0)particles.splice(i,1)});
+if(flashAlpha>0){ctx.fillStyle=`rgba(255,255,255,${flashAlpha})`;ctx.fillRect(0,0,canvas.width,canvas.height);flashAlpha-=0.08;}
+requestAnimationFrame(animate);}
+animate();
+</script>
+</body>
+</html>
